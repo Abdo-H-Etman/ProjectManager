@@ -2,7 +2,7 @@ using Domain.Common;
 using Domain.Enums;
 using TaskStatus = Domain.Enums.TaskStatus;
 
-namespace Domain.Entities.Models;
+namespace Domain.Entities;
 
 public class Task : BaseEntity
 {
