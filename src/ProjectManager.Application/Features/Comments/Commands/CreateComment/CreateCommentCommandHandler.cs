@@ -7,7 +7,7 @@ using TaskEntity = Domain.Entities.Task;
 
 namespace Application.Features.Comments.Commands.CreateComment;
 
-public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand, CommentDto>
+public class CreateCommentCommandHandler : IRequestHandler<CreateCommentForTaskCommand, CommentDto>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
@@ -20,22 +20,22 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
         _currentUserService = currentUserService;
     }
 
-    public async Task<CommentDto> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
+    public async Task<CommentDto> Handle(CreateCommentForTaskCommand request, CancellationToken cancellationToken)
     {
-        var taskExists = await _unitOfWork.Comments.ExistsAsync(request.TaskId, cancellationToken);
+        var taskExists = await _unitOfWork.Tasks.ExistsAsync(request.TaskId, cancellationToken);
         if (!taskExists)
         {
             throw new NotFoundException(nameof(TaskEntity), request.TaskId);
         }
 
-        var authorId = _currentUserService.UserId ?? request.AuthorId ?? Guid.NewGuid();
+        var authorId = _currentUserService.UserId ?? Guid.NewGuid();
 
         var comment = new Comment
         {
             TaskId = request.TaskId,
             AuthorId = authorId,
-            ParentCommentId = request.ParentCommentId,
-            Content = request.Content,
+            ParentCommentId = request.Comment.ParentCommentId,
+            Content = request.Comment.Content,
             IsEdited = false,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
