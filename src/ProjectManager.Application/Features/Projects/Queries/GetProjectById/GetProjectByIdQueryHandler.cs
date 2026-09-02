@@ -30,7 +30,7 @@ public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, P
             Id = project.Id,
             Name = project.Name,
             Description = project.Description,
-            Status = project.Status,
+            Status = project.Status.ToString(),
             OwnerId = project.OwnerId,
             StartDate = project.StartDate,
             EndDate = project.EndDate,

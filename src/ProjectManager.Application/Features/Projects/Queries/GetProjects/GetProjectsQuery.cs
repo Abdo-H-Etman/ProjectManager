@@ -5,6 +5,6 @@ using MediatR;
 namespace Application.Features.Projects.Queries.GetProjects;
 
 public record GetProjectsQuery(
-    ProjectStatus? Status = null,
+    string? Status = null,
     bool? IsArchived = null,
     string? SearchTerm = null) : IRequest<IReadOnlyList<ProjectDto>>;

@@ -16,7 +16,7 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, IReadOn
     public async Task<IReadOnlyList<ProjectDto>> Handle(GetProjectsQuery request, CancellationToken cancellationToken)
     {
         var projects = await _projectRepository.FindAsync(
-            p => (!request.Status.HasValue || p.Status == request.Status.Value) &&
+            p => (string.IsNullOrWhiteSpace(request.Status) || p.Status.ToString() == request.Status) &&
                  (!request.IsArchived.HasValue || p.IsArchived == request.IsArchived.Value) &&
                  (string.IsNullOrWhiteSpace(request.SearchTerm) || p.Name.Contains(request.SearchTerm) || (p.Description != null && p.Description.Contains(request.SearchTerm))),
             cancellationToken);
@@ -26,7 +26,7 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, IReadOn
             Id = p.Id,
             Name = p.Name,
             Description = p.Description,
-            Status = p.Status,
+            Status = p.Status.ToString(),
             OwnerId = p.OwnerId,
             StartDate = p.StartDate,
             EndDate = p.EndDate,
