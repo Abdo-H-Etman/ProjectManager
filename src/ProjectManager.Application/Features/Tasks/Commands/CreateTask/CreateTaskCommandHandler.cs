@@ -1,9 +1,11 @@
 using Application.Common.Interfaces;
 using Application.Features.Tasks.DTOs;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.Exceptions;
 using MediatR;
 using TaskEntity = Domain.Entities.Task;
+using TaskStatus = Domain.Enums.TaskStatus;
 
 namespace Application.Features.Tasks.Commands.CreateTask;
 
@@ -30,13 +32,15 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, TaskD
 
         var createdById = _currentUserService.UserId ?? request.CreatedById;
 
+        Enum.TryParse(request.Priority, true, out TaskPriority priority);
+        Enum.TryParse(request.Status, true, out TaskStatus status);
         var task = new TaskEntity
         {
             ProjectId = request.ProjectId,
             Title = request.Title,
             Description = request.Description,
-            Priority = request.Priority,
-            Status = request.Status,
+            Priority = priority,
+            Status = status,
             DueDate = request.DueDate,
             StartDate = request.StartDate,
             AssignedToId = request.AssignedToId,
@@ -57,8 +61,8 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, TaskD
             ProjectId = task.ProjectId,
             Title = task.Title,
             Description = task.Description,
-            Priority = task.Priority,
-            Status = task.Status,
+            Priority = task.Priority.ToString(),
+            Status = task.Status.ToString(),
             DueDate = task.DueDate,
             StartDate = task.StartDate,
             CompletedAt = task.CompletedAt,

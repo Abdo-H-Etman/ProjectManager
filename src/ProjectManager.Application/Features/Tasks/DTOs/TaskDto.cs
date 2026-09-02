@@ -9,8 +9,8 @@ public class TaskDto
     public Guid ProjectId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public TaskPriority Priority { get; set; }
-    public TaskStatus Status { get; set; }
+    public string Priority { get; set; } = null!;
+    public string Status { get; set; } = null!;
     public DateTime? DueDate { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? CompletedAt { get; set; }

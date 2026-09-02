@@ -15,10 +15,12 @@ public class GetTasksQueryHandler : IRequestHandler<GetTasksQuery, IReadOnlyList
 
     public async Task<IReadOnlyList<TaskDto>> Handle(GetTasksQuery request, CancellationToken cancellationToken)
     {
+        Enum.TryParse(request.Status, true, out Domain.Enums.TaskStatus status);
+        Enum.TryParse(request.Priority, true, out Domain.Enums.TaskPriority priority);
         var tasks = await _taskRepository.GetTasksByFilterAsync(
             request.ProjectId,
-            request.Status,
-            request.Priority,
+            status,
+            priority,
             request.AssignedToId,
             cancellationToken);
 
@@ -28,8 +30,8 @@ public class GetTasksQueryHandler : IRequestHandler<GetTasksQuery, IReadOnlyList
             ProjectId = t.ProjectId,
             Title = t.Title,
             Description = t.Description,
-            Priority = t.Priority,
-            Status = t.Status,
+            Priority = t.Priority.ToString(),
+            Status = t.Status.ToString(),
             DueDate = t.DueDate,
             StartDate = t.StartDate,
             CompletedAt = t.CompletedAt,
