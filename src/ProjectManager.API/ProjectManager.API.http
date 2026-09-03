@@ -1,1 +1,106 @@
-@ProjectManager.API_HostAddress = http://localhost:5183
+@Host = http://localhost:5183
+
+##################################################
+# Auth
+##################################################
+
+### 1. Register User
+# @name register
+POST {{Host}}/api/users/register
+Content-Type: application/json
+
+{
+  "email": "lead.architect@company.com",
+  "password": "Password123!",
+  "firstName": "John",
+  "lastName": "Doe"
+}
+
+### 2. Login User
+# @name login
+POST {{Host}}/api/users/login
+Content-Type: application/json
+
+{
+  "email": "lead.architect@company.com",
+  "password": "Password123!"
+}
+
+### 3. Get Current Authenticated User (Me)
+@token = {{login.response.body.token}}
+
+GET {{Host}}/api/users/me
+Authorization: Bearer {{token}}
+
+##################################################
+# Projects
+##################################################
+
+### 4. Create Project Without Token (Should return 401 Unauthorized)
+POST {{Host}}/api/projects
+Content-Type: application/json
+
+{
+  "name": "Unauthorized Project Creation",
+  "description": "Should fail with 401"
+}
+
+### 5. Create Project With Token (OwnerId auto-populated from current user)
+# @name createProject
+POST {{Host}}/api/projects
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Clean Architecture & CQRS Platform",
+  "description": "Enterprise platform with Feature-Based CQRS and JWT Authentication",
+  "status": "Active",
+  "startDate": "2026-09-01T00:00:00Z",
+  "endDate": "2026-12-31T00:00:00Z"
+}
+
+### 6. Get All Projects (Authorized)
+GET {{Host}}/api/projects
+Authorization: Bearer {{token}}
+
+##################################################
+# Tasks
+##################################################
+
+### 7. Create Task (CreatedById auto-populated from current user)
+@projectId = {{createProject.response.body.id}}
+
+# @name createTask
+POST {{Host}}/api/tasks
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "projectId": "{{projectId}}",
+  "title": "Setup JWT Authentication & CurrentUserService",
+  "description": "Enforce endpoint authorization and resolve current user ID from Claims",
+  "priority": 2,
+  "status": 1,
+  "startDate": "2026-09-01T00:00:00Z",
+  "dueDate": "2026-09-10T00:00:00Z",
+  "estimatedHours": 12.0
+}
+
+##################################################
+# Comments
+##################################################
+
+### 8. Create Comment (AuthorId auto-populated from current user)
+@taskId = {{createTask.response.body.id}}
+
+POST {{Host}}/api/tasks/{{taskId}}/comments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "content": "Current user service automatically injected author ID from JWT token."
+}
+
+### 9. Get Comments For Task
+GET {{Host}}/api/tasks/{{taskId}}/comments
+Authorization: Bearer {{token}}
