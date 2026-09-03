@@ -9,9 +9,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ProjectManager.API.Controllers;
 
+/// <summary>
+/// Provides endpoints for managing projects.
+/// </summary>
 [Authorize]
 public class ProjectsController : ApiControllerBase
 {
+    /// <summary>Creates a project owned by the current user.</summary>
+    /// <param name="command">The project details.</param>
+    /// <returns>The newly created project.</returns>
     [HttpPost]
     [ProducesResponseType(typeof(ProjectDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -21,6 +27,9 @@ public class ProjectsController : ApiControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
+    /// <summary>Gets projects visible to the current user.</summary>
+    /// <param name="query">Optional filters and pagination settings.</param>
+    /// <returns>A list of projects.</returns>
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<ProjectDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<ProjectDto>>> GetAll([FromQuery] GetProjectsQuery query)
@@ -29,6 +38,9 @@ public class ProjectsController : ApiControllerBase
         return Ok(result);
     }
 
+    /// <summary>Gets a project by its identifier.</summary>
+    /// <param name="id">The project identifier.</param>
+    /// <returns>The project and its details.</returns>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(ProjectDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -38,6 +50,10 @@ public class ProjectsController : ApiControllerBase
         return Ok(result);
     }
 
+    /// <summary>Updates an existing project.</summary>
+    /// <param name="id">The project identifier in the route.</param>
+    /// <param name="command">The updated project details, including the matching identifier.</param>
+    /// <returns>The updated project.</returns>
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(ProjectDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -53,6 +69,8 @@ public class ProjectsController : ApiControllerBase
         return Ok(result);
     }
 
+    /// <summary>Deletes a project.</summary>
+    /// <param name="id">The project identifier.</param>
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -5,17 +5,30 @@ using Domain.Exceptions;
 
 namespace ProjectManager.API.Middleware;
 
+/// <summary>
+/// Handles exceptions that occur during request processing.
+/// </summary>
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="next"></param>
+    /// <param name="logger"></param>
     public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
         _next = next;
         _logger = logger;
     }
 
+    /// <summary>
+    /// Invokes the middleware.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
     public async Task InvokeAsync(HttpContext context)
     {
         try
