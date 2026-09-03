@@ -77,6 +77,13 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var databaseSeeder = scope.ServiceProvider.GetRequiredService<Infrastructure.Persistence.DatabaseSeeder>();
+    await databaseSeeder.SeedAsync();
+}
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())

@@ -32,6 +32,7 @@ public static class DependencyInjection
 
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IIdentityService, IdentityService>();
+        services.AddScoped<DatabaseSeeder>();
 
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IProjectRepository, ProjectRepository>();
