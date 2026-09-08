@@ -13,4 +13,19 @@ public interface ITaskRepository : IRepository<TaskEntity>
         TaskPriority? priority = null,
         Guid? assignedToId = null,
         CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TaskEntity>> GetTasksByProjectIdAsync(
+        Guid projectId,
+        TaskStatus? status = null,
+        TaskPriority? priority = null,
+        Guid? assignedToId = null,
+        CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TaskEntity>> GetUnassignedTasksAsync(
+        Guid? projectId = null,
+        CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TaskEntity>> GetOverdueTasksAsync(
+        Guid? assignedToId = null,
+        CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TaskEntity>> GetSubtasksAsync(
+        Guid parentTaskId,
+        CancellationToken cancellationToken = default);
 }
