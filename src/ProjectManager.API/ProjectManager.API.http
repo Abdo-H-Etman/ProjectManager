@@ -93,6 +93,7 @@ Content-Type: application/json
 ### 8. Create Comment (AuthorId auto-populated from current user)
 @taskId = {{createTask.response.body.id}}
 
+# @name createComment
 POST {{Host}}/api/tasks/{{taskId}}/comments
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -103,4 +104,109 @@ Content-Type: application/json
 
 ### 9. Get Comments For Task
 GET {{Host}}/api/tasks/{{taskId}}/comments
+Authorization: Bearer {{token}}
+
+### 10. Update Comment
+@commentId = {{createComment.response.body.id}}
+
+PUT {{Host}}/api/comments/{{commentId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "content": "Updated comment content with edit timestamp."
+}
+
+##################################################
+# Extended Tasks & Workflow
+##################################################
+
+### 11. Update Task Status (Patch)
+PATCH {{Host}}/api/tasks/{{taskId}}/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "InProgress"
+}
+
+### 12. Assign Task (Patch)
+PATCH {{Host}}/api/tasks/{{taskId}}/assign
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "assignedToId": "{{register.response.body.user.id}}"
+}
+
+### 13. Create Subtask
+POST {{Host}}/api/tasks/{{taskId}}/subtasks
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Configure SymmetricSecurityKey in DI",
+  "description": "Subtask to implement token validation parameters",
+  "priority": "High",
+  "status": "Pending",
+  "estimatedHours": 3.0
+}
+
+### 14. Get Subtasks For Task
+GET {{Host}}/api/tasks/{{taskId}}/subtasks
+Authorization: Bearer {{token}}
+
+### 15. Get Unassigned Tasks (Backlog)
+GET {{Host}}/api/tasks/unassigned
+Authorization: Bearer {{token}}
+
+### 16. Get Overdue Tasks
+GET {{Host}}/api/tasks/overdue
+Authorization: Bearer {{token}}
+
+##################################################
+# Extended Projects
+##################################################
+
+### 17. Get All Tasks in Project (across all users)
+GET {{Host}}/api/projects/{{projectId}}/tasks
+Authorization: Bearer {{token}}
+
+### 18. Get Project Summary & Metrics
+GET {{Host}}/api/projects/{{projectId}}/summary
+Authorization: Bearer {{token}}
+
+### 19. Archive Project (Patch)
+PATCH {{Host}}/api/projects/{{projectId}}/archive
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "isArchived": true
+}
+
+##################################################
+# Extended Users & Team Collaboration
+##################################################
+
+### 20. Search & List Users
+GET {{Host}}/api/users?searchTerm=John
+Authorization: Bearer {{token}}
+
+### 21. Update Profile (Me)
+PUT {{Host}}/api/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Architect"
+}
+
+##################################################
+# Dashboard
+##################################################
+
+### 22. Get My Dashboard
+GET {{Host}}/api/dashboard/me
 Authorization: Bearer {{token}}

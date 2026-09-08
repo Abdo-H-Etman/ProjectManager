@@ -103,6 +103,9 @@ All routes use the `/api` prefix. Project, task, and comment endpoints require a
 | `POST` | `/api/users/register` | Register a user and return a JWT | Anonymous |
 | `POST` | `/api/users/login` | Authenticate a user and return a JWT | Anonymous |
 | `GET` | `/api/users/me` | Get the authenticated user's profile | Required |
+| `PUT` | `/api/users/me` | Update the authenticated user's profile details | Required |
+| `POST` | `/api/users/change-password` | Change current user's password | Required |
+| `GET` | `/api/users` | List active users for task assignment (supports `searchTerm`) | Required |
 
 Registration accepts `email`, `password`, `firstName`, and optional `lastName`. Passwords must satisfy the Identity password policy, which currently requires at least eight characters.
 
@@ -112,7 +115,10 @@ Registration accepts `email`, `password`, `firstName`, and optional `lastName`. 
 | --- | --- | --- |
 | `POST` | `/api/projects` | Create a project |
 | `GET` | `/api/projects` | List projects |
-| `GET` | `/api/projects/{id}` | Get project details and task statistics |
+| `GET` | `/api/projects/{id}` | Get project details, task statistics, and tasks |
+| `GET` | `/api/projects/{id}/tasks` | Get all tasks in a project across all assignees |
+| `GET` | `/api/projects/{id}/summary` | Get project summary metrics, progress %, and distribution |
+| `PATCH` | `/api/projects/{id}/archive` | Archive or unarchive a project |
 | `PUT` | `/api/projects/{id}` | Update a project |
 | `DELETE` | `/api/projects/{id}` | Delete a project |
 
@@ -123,8 +129,14 @@ The list endpoint supports the optional query parameters `status`, `isArchived`,
 | Method | Route | Description |
 | --- | --- | --- |
 | `POST` | `/api/tasks` | Create a task under a project |
-| `GET` | `/api/tasks` | List tasks |
-| `GET` | `/api/tasks/{id}` | Get task details and related counts |
+| `GET` | `/api/tasks` | List tasks (defaults to tasks assigned to current user) |
+| `GET` | `/api/tasks/{id}` | Get task details, related counts, and comments |
+| `GET` | `/api/tasks/unassigned` | List unassigned tasks (backlog) |
+| `GET` | `/api/tasks/overdue` | List overdue tasks assigned to current user |
+| `PATCH` | `/api/tasks/{id}/status` | Update task status (auto-updates `CompletedAt`) |
+| `PATCH` | `/api/tasks/{id}/assign` | Assign, reassign, or unassign a task |
+| `GET` | `/api/tasks/{id}/subtasks` | List subtasks for a task |
+| `POST` | `/api/tasks/{id}/subtasks` | Create a subtask under a task |
 | `PUT` | `/api/tasks/{id}` | Update a task |
 | `DELETE` | `/api/tasks/{id}` | Delete a task |
 
@@ -136,7 +148,14 @@ The list endpoint supports the optional query parameters `projectId`, `status`, 
 | --- | --- | --- |
 | `POST` | `/api/tasks/{taskId}/comments` | Add a comment to a task |
 | `GET` | `/api/tasks/{taskId}/comments` | List task comments and replies |
+| `PUT` | `/api/comments/{id}` | Edit an existing comment |
 | `DELETE` | `/api/comments/{id}` | Delete a comment |
+
+### Dashboard
+
+| Method | Route | Description |
+| --- | --- | --- |
+| `GET` | `/api/dashboard/me` | Get workspace dashboard metrics and upcoming deadlines |
 
 ## Domain Values
 
