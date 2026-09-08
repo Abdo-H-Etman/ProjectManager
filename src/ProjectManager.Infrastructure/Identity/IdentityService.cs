@@ -91,4 +91,77 @@ public class IdentityService : IIdentityService
             CreatedAt = user.CreatedAt
         };
     }
+
+    public async Task<IReadOnlyList<UserDto>> GetUsersAsync(string? searchTerm = null, CancellationToken cancellationToken = default)
+    {
+        var query = _userManager.Users
+            .Where(u => !u.IsDeleted && u.IsActive);
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(u =>
+                u.FirstName.Contains(searchTerm) ||
+                (u.LastName != null && u.LastName.Contains(searchTerm)) ||
+                (u.Email != null && u.Email.Contains(searchTerm)));
+        }
+
+        var users = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(query, cancellationToken);
+
+        return users.Select(u => new UserDto
+        {
+            Id = u.Id,
+            Email = u.Email ?? string.Empty,
+            FirstName = u.FirstName,
+            LastName = u.LastName,
+            FullName = u.GetFullName(),
+            IsActive = u.IsActive,
+            CreatedAt = u.CreatedAt
+        }).ToList();
+    }
+
+    public async Task<(bool Success, string[] Errors)> UpdateProfileAsync(
+        Guid userId,
+        string? firstName,
+        string? lastName,
+        CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null || user.IsDeleted)
+        {
+            return (false, ["User not found."]);
+        }
+
+        user.FirstName = string.IsNullOrWhiteSpace(firstName) ? user.FirstName : firstName;
+        user.LastName = lastName ?? user.LastName;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            return (false, result.Errors.Select(e => e.Description).ToArray());
+        }
+
+        return (true, Array.Empty<string>());
+    }
+
+    public async Task<(bool Success, string[] Errors)> ChangePasswordAsync(
+        Guid userId,
+        string currentPassword,
+        string newPassword,
+        CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null || user.IsDeleted)
+        {
+            return (false, ["User not found."]);
+        }
+
+        var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        if (!result.Succeeded)
+        {
+            return (false, result.Errors.Select(e => e.Description).ToArray());
+        }
+
+        return (true, Array.Empty<string>());
+    }
 }
