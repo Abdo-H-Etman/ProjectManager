@@ -48,4 +48,22 @@ public class CommentsController : ApiControllerBase
         await Mediator.Send(new DeleteCommentCommand(id));
         return NoContent();
     }
+
+    /// <summary>Updates an existing comment.</summary>
+    /// <param name="id">The comment identifier.</param>
+    /// <param name="request">The updated comment content.</param>
+    /// <returns>The updated comment.</returns>
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(CommentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CommentDto>> Update(Guid id, [FromBody] UpdateCommentRequest request)
+    {
+        var result = await Mediator.Send(new Application.Features.Comments.Commands.UpdateComment.UpdateCommentCommand(id, request.Content));
+        return Ok(result);
+    }
 }
+
+/// <summary>Request payload for updating a comment.</summary>
+/// <param name="Content">The updated comment text.</param>
+public record UpdateCommentRequest(string Content);
