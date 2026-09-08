@@ -29,6 +29,7 @@ Content-Type: application/json
 ### 3. Get Current Authenticated User (Me)
 @token = {{login.response.body.token}}
 
+# @name getCurrentUser
 GET {{Host}}/api/users/me
 Authorization: Bearer {{token}}
 
@@ -79,8 +80,8 @@ Content-Type: application/json
   "projectId": "{{projectId}}",
   "title": "Setup JWT Authentication & CurrentUserService",
   "description": "Enforce endpoint authorization and resolve current user ID from Claims",
-  "priority": 2,
-  "status": 1,
+  "priority": "High",
+  "status": "Pending",
   "startDate": "2026-09-01T00:00:00Z",
   "dueDate": "2026-09-10T00:00:00Z",
   "estimatedHours": 12.0
@@ -136,7 +137,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "assignedToId": "{{register.response.body.user.id}}"
+  "assignedToId": "{{{getCurrentUser.response.body.id}}}"
 }
 
 ### 13. Create Subtask
