@@ -2,33 +2,22 @@ using Application.Common.Interfaces;
 using Application.Features.Tasks.DTOs;
 using MediatR;
 
-namespace Application.Features.Tasks.Queries.GetTasks;
+namespace Application.Features.Tasks.Queries.GetOverdueTasks;
 
-public class GetTasksQueryHandler : IRequestHandler<GetTasksQuery, IReadOnlyList<TaskDto>>
+public class GetOverdueTasksQueryHandler : IRequestHandler<GetOverdueTasksQuery, IReadOnlyList<TaskDto>>
 {
     private readonly ITaskRepository _taskRepository;
     private readonly ICurrentUserService _currentUserService;
 
-    public GetTasksQueryHandler(ITaskRepository taskRepository, ICurrentUserService currentUserService)
+    public GetOverdueTasksQueryHandler(ITaskRepository taskRepository, ICurrentUserService currentUserService)
     {
         _taskRepository = taskRepository;
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<TaskDto>> Handle(GetTasksQuery request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<TaskDto>> Handle(GetOverdueTasksQuery request, CancellationToken cancellationToken)
     {
-        var status = Enum.TryParse<Domain.Enums.TaskStatus>(request.Status, true, out var parsedStatus)
-            ? parsedStatus
-            : (Domain.Enums.TaskStatus?)null;
-        var priority = Enum.TryParse<Domain.Enums.TaskPriority>(request.Priority, true, out var parsedPriority)
-            ? parsedPriority
-            : (Domain.Enums.TaskPriority?)null;
-        var tasks = await _taskRepository.GetTasksByFilterAsync(
-            request.ProjectId,
-            status,
-            priority,
-            request.AssignedToId ?? _currentUserService.UserId,
-            cancellationToken);
+        var tasks = await _taskRepository.GetOverdueTasksAsync(_currentUserService.UserId, cancellationToken);
 
         return tasks.Select(t => new TaskDto
         {

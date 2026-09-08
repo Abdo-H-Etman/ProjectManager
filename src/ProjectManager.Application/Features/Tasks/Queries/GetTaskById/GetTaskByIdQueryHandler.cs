@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Application.Features.Comments.DTOs;
 using Application.Features.Tasks.DTOs;
 using Domain.Exceptions;
 using MediatR;
@@ -44,7 +45,19 @@ public class GetTaskByIdQueryHandler : IRequestHandler<GetTaskByIdQuery, TaskDet
             UpdatedAt = task.UpdatedAt,
             ProjectName = task.Project?.Name,
             CommentCount = task.Comments?.Count ?? 0,
-            SubTaskCount = task.SubTasks?.Count ?? 0
+            SubTaskCount = task.SubTasks?.Count ?? 0,
+            Comments = task.Comments?.Select(comment => new CommentDto
+            {
+                Id = comment.Id,
+                TaskId = comment.TaskId,
+                AuthorId = comment.AuthorId,
+                ParentCommentId = comment.ParentCommentId,
+                Content = comment.Content,
+                IsEdited = comment.IsEdited,
+                EditedAt = comment.EditedAt,
+                CreatedAt = comment.CreatedAt,
+                UpdatedAt = comment.UpdatedAt
+            }).ToList() ?? []
         };
     }
 }

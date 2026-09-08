@@ -1,33 +1,43 @@
 using Application.Common.Interfaces;
 using Application.Features.Tasks.DTOs;
+using Domain.Entities;
+using Domain.Exceptions;
 using MediatR;
+using TaskStatus = Domain.Enums.TaskStatus;
 
-namespace Application.Features.Tasks.Queries.GetTasks;
+namespace Application.Features.Tasks.Queries.GetTasksByProject;
 
-public class GetTasksQueryHandler : IRequestHandler<GetTasksQuery, IReadOnlyList<TaskDto>>
+public class GetTasksByProjectQueryHandler : IRequestHandler<GetTasksByProjectQuery, IReadOnlyList<TaskDto>>
 {
     private readonly ITaskRepository _taskRepository;
-    private readonly ICurrentUserService _currentUserService;
+    private readonly IProjectRepository _projectRepository;
 
-    public GetTasksQueryHandler(ITaskRepository taskRepository, ICurrentUserService currentUserService)
+    public GetTasksByProjectQueryHandler(ITaskRepository taskRepository, IProjectRepository projectRepository)
     {
         _taskRepository = taskRepository;
-        _currentUserService = currentUserService;
+        _projectRepository = projectRepository;
     }
 
-    public async Task<IReadOnlyList<TaskDto>> Handle(GetTasksQuery request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<TaskDto>> Handle(GetTasksByProjectQuery request, CancellationToken cancellationToken)
     {
-        var status = Enum.TryParse<Domain.Enums.TaskStatus>(request.Status, true, out var parsedStatus)
+        var projectExists = await _projectRepository.ExistsAsync(request.ProjectId, cancellationToken);
+        if (!projectExists)
+        {
+            throw new NotFoundException(nameof(Project), request.ProjectId);
+        }
+
+        var status = Enum.TryParse<TaskStatus>(request.Status, true, out var parsedStatus)
             ? parsedStatus
-            : (Domain.Enums.TaskStatus?)null;
+            : (TaskStatus?)null;
         var priority = Enum.TryParse<Domain.Enums.TaskPriority>(request.Priority, true, out var parsedPriority)
             ? parsedPriority
             : (Domain.Enums.TaskPriority?)null;
-        var tasks = await _taskRepository.GetTasksByFilterAsync(
+
+        var tasks = await _taskRepository.GetTasksByProjectIdAsync(
             request.ProjectId,
             status,
             priority,
-            request.AssignedToId ?? _currentUserService.UserId,
+            request.AssignedToId,
             cancellationToken);
 
         return tasks.Select(t => new TaskDto
