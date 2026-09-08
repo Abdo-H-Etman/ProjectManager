@@ -2,6 +2,8 @@ using Domain.Enums;
 
 namespace Application.Features.Projects.DTOs;
 
+using Application.Features.Tasks.DTOs;
+
 public class ProjectDto
 {
     public Guid Id { get; set; }
@@ -20,4 +22,5 @@ public class ProjectDetailDto : ProjectDto
 {
     public int TaskCount { get; set; }
     public int CompletedTaskCount { get; set; }
+    public IReadOnlyList<TaskDto> Tasks { get; set; } = [];
 }

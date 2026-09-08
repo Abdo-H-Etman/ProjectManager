@@ -79,4 +79,53 @@ public class ProjectsController : ApiControllerBase
         await Mediator.Send(new DeleteProjectCommand(id));
         return NoContent();
     }
+
+    /// <summary>Gets all tasks for a project.</summary>
+    /// <param name="id">The project identifier.</param>
+    /// <param name="status">Optional status filter.</param>
+    /// <param name="priority">Optional priority filter.</param>
+    /// <param name="assignedToId">Optional assignee filter.</param>
+    /// <returns>A list of tasks in the project.</returns>
+    [HttpGet("{id:guid}/tasks")]
+    [ProducesResponseType(typeof(IReadOnlyList<Application.Features.Tasks.DTOs.TaskDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<Application.Features.Tasks.DTOs.TaskDto>>> GetTasks(
+        Guid id,
+        [FromQuery] string? status = null,
+        [FromQuery] string? priority = null,
+        [FromQuery] Guid? assignedToId = null)
+    {
+        var result = await Mediator.Send(new Application.Features.Tasks.Queries.GetTasksByProject.GetTasksByProjectQuery(id, status, priority, assignedToId));
+        return Ok(result);
+    }
+
+    /// <summary>Gets statistics and summary metrics for a project.</summary>
+    /// <param name="id">The project identifier.</param>
+    /// <returns>The project metrics summary.</returns>
+    [HttpGet("{id:guid}/summary")]
+    [ProducesResponseType(typeof(ProjectSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProjectSummaryDto>> GetSummary(Guid id)
+    {
+        var result = await Mediator.Send(new Application.Features.Projects.Queries.GetProjectSummary.GetProjectSummaryQuery(id));
+        return Ok(result);
+    }
+
+    /// <summary>Archives or unarchives a project.</summary>
+    /// <param name="id">The project identifier.</param>
+    /// <param name="request">Archive status payload.</param>
+    /// <returns>The updated project.</returns>
+    [HttpPatch("{id:guid}/archive")]
+    [ProducesResponseType(typeof(ProjectDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProjectDto>> Archive(Guid id, [FromBody] ArchiveProjectRequest? request)
+    {
+        var isArchived = request?.IsArchived ?? true;
+        var result = await Mediator.Send(new Application.Features.Projects.Commands.ArchiveProject.ArchiveProjectCommand(id, isArchived));
+        return Ok(result);
+    }
 }
+
+/// <summary>Request payload for archiving or unarchiving a project.</summary>
+/// <param name="IsArchived">Whether the project should be archived.</param>
+public record ArchiveProjectRequest(bool IsArchived = true);
