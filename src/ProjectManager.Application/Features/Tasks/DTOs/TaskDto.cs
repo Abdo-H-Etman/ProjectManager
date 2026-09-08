@@ -3,6 +3,8 @@ using TaskStatus = Domain.Enums.TaskStatus;
 
 namespace Application.Features.Tasks.DTOs;
 
+using Application.Features.Comments.DTOs;
+
 public class TaskDto
 {
     public Guid Id { get; set; }
@@ -29,4 +31,5 @@ public class TaskDetailDto : TaskDto
     public string? ProjectName { get; set; }
     public int CommentCount { get; set; }
     public int SubTaskCount { get; set; }
+    public IReadOnlyList<CommentDto> Comments { get; set; } = [];
 }
