@@ -1,7 +1,5 @@
-using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Features.Users.DTOs;
-using FluentValidation.Results;
 using MediatR;
 
 namespace Application.Features.Users.Commands.LoginUser;
@@ -28,8 +26,7 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, AuthRes
 
         if (!success)
         {
-            var failures = errors.Select(e => new ValidationFailure("Authentication", e));
-            throw new ValidationException(failures);
+            throw new UnauthorizedAccessException("Invalid email or password.");
         }
 
         var token = _jwtTokenGenerator.GenerateToken(userId, email, fullName, roles);

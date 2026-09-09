@@ -79,6 +79,16 @@ public class ExceptionHandlingMiddleware
                 detail = notFoundEx.Message
             };
         }
+        else if (exception is UnauthorizedAccessException unauthorizedEx)
+        {
+            _logger.LogWarning("Unauthorized request: {Message}", unauthorizedEx.Message);
+            responseBody = new
+            {
+                status = (int)HttpStatusCode.Unauthorized,
+                title = "Unauthorized",
+                detail = unauthorizedEx.Message
+            };
+        }
         else
         {
             _logger.LogError(exception, "An unhandled exception occurred: {Message}", exception.Message);
