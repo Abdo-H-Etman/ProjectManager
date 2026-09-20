@@ -22,14 +22,14 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
     public async Task<ProjectDto> Handle(CreateProjectCommand request, CancellationToken cancellationToken)
     {
         Enum.TryParse(request.Status, true, out ProjectStatus status);
-        var ownerId = _currentUserService.UserId ?? request.OwnerId ?? Guid.NewGuid();
+        var ownerId = _currentUserService.UserId;
 
         var project = new Project
         {
             Name = request.Name,
             Description = request.Description,
             Status = status,
-            OwnerId = ownerId,
+            OwnerId = (Guid)ownerId!,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
             IsArchived = false,
