@@ -30,7 +30,7 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, TaskD
             throw new NotFoundException(nameof(Project), request.ProjectId);
         }
 
-        var createdById = _currentUserService.UserId ?? request.CreatedById;
+        var createdById = _currentUserService.UserId;
 
         Enum.TryParse(request.Priority, true, out TaskPriority priority);
         Enum.TryParse(request.Status, true, out TaskStatus status);

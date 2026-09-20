@@ -15,7 +15,6 @@ public record CreateTaskCommand : IRequest<TaskDto>
     public DateTime? DueDate { get; init; }
     public DateTime? StartDate { get; init; }
     public Guid? AssignedToId { get; init; }
-    public Guid? CreatedById { get; init; }
     public Guid? ParentTaskId { get; init; }
     public decimal? EstimatedHours { get; init; }
 }
