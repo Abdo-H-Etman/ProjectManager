@@ -96,7 +96,7 @@ public class DatabaseSeeder
             Title = "Review accessibility checklist",
             Description = "Check keyboard navigation, contrast, and semantic markup.",
             Priority = TaskPriority.Medium,
-            Status = Domain.Enums.TaskStatus.Pending,
+            Status = Domain.Enums.TaskStatus.Todo,
             DueDate = utcToday.AddDays(12),
             AssignedToId = user.Id,
             CreatedById = user.Id,
@@ -108,7 +108,7 @@ public class DatabaseSeeder
             Title = "Draft mobile app requirements",
             Description = "Collect the initial feature and platform requirements.",
             Priority = TaskPriority.Critical,
-            Status = Domain.Enums.TaskStatus.Blocked,
+            Status = Domain.Enums.TaskStatus.Cancelled,
             DueDate = utcToday.AddDays(20),
             CreatedById = user.Id,
             EstimatedHours = 10

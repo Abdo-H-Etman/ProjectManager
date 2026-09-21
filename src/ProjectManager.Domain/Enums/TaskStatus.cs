@@ -2,10 +2,8 @@ namespace Domain.Enums;
 
 public enum TaskStatus
 {
-    Pending,
+    Todo,
     InProgress,
-    Review,
-    Blocked,
     Completed,
     Cancelled
 }

@@ -10,7 +10,7 @@ public class Task : BaseEntity
     public required string Title { get; set; }
     public string? Description { get; set; }
     public TaskPriority Priority { get; set; } = TaskPriority.Medium;
-    public TaskStatus Status { get; set; } = TaskStatus.Pending;
+    public TaskStatus Status { get; set; } = TaskStatus.Todo;
     public DateTime? DueDate { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? CompletedAt { get; set; }

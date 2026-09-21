@@ -35,8 +35,8 @@ public class GetMyDashboardQueryHandler : IRequestHandler<GetMyDashboardQuery, D
         var totalAssigned = tasks.Count;
         var completed = tasks.Count(t => t.Status == TaskStatus.Completed);
         var inProgress = tasks.Count(t => t.Status == TaskStatus.InProgress);
-        var pending = tasks.Count(t => t.Status == TaskStatus.Pending);
-        var review = tasks.Count(t => t.Status == TaskStatus.Review);
+        var pending = tasks.Count(t => t.Status == TaskStatus.Todo);
+        var review = tasks.Count(t => t.Status == TaskStatus.InProgress);
 
         var overdue = tasks.Count(t => t.DueDate != null && t.DueDate < now && t.Status != TaskStatus.Completed && t.Status != TaskStatus.Cancelled);
         var dueSoon = tasks.Count(t => t.DueDate != null && t.DueDate >= now && t.DueDate <= sevenDaysFromNow && t.Status != TaskStatus.Completed && t.Status != TaskStatus.Cancelled);

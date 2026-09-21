@@ -11,7 +11,7 @@ public record CreateTaskCommand : IRequest<TaskDto>
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
     public string Priority { get; init; } = TaskPriority.Medium.ToString();
-    public string Status { get; init; } = TaskStatus.Pending.ToString();
+    public string Status { get; init; } = TaskStatus.Todo.ToString();
     public DateTime? DueDate { get; init; }
     public DateTime? StartDate { get; init; }
     public Guid? AssignedToId { get; init; }
