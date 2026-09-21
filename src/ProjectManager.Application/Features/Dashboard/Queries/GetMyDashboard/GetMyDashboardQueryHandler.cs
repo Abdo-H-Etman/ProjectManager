@@ -1,6 +1,7 @@
 using Application.Common.Interfaces;
 using Application.Features.Dashboard.DTOs;
 using Application.Features.Tasks.DTOs;
+using AutoMapper;
 using Domain.Enums;
 using MediatR;
 using TaskStatus = Domain.Enums.TaskStatus;
@@ -11,13 +12,16 @@ public class GetMyDashboardQueryHandler : IRequestHandler<GetMyDashboardQuery, D
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IMapper _mapper;
 
     public GetMyDashboardQueryHandler(
         IUnitOfWork unitOfWork,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
+        _mapper = mapper;
     }
 
     public async Task<DashboardDto> Handle(GetMyDashboardQuery request, CancellationToken cancellationToken)
@@ -41,26 +45,8 @@ public class GetMyDashboardQueryHandler : IRequestHandler<GetMyDashboardQuery, D
             .Where(t => t.DueDate != null && t.DueDate >= now && t.Status != TaskStatus.Completed && t.Status != TaskStatus.Cancelled)
             .OrderBy(t => t.DueDate)
             .Take(5)
-            .Select(t => new TaskDto
-            {
-                Id = t.Id,
-                ProjectId = t.ProjectId,
-                Title = t.Title,
-                Description = t.Description,
-                Priority = t.Priority.ToString(),
-                Status = t.Status.ToString(),
-                DueDate = t.DueDate,
-                StartDate = t.StartDate,
-                CompletedAt = t.CompletedAt,
-                AssignedToId = t.AssignedToId,
-                AssignedAt = t.AssignedAt,
-                CreatedById = t.CreatedById,
-                ParentTaskId = t.ParentTaskId,
-                EstimatedHours = t.EstimatedHours,
-                ActualHours = t.ActualHours,
-                CreatedAt = t.CreatedAt,
-                UpdatedAt = t.UpdatedAt
-            }).ToList();
+            .Select(task => _mapper.Map<TaskDto>(task))
+            .ToList();
 
         var activeProjects = await _unitOfWork.Projects.FindAsync(p => !p.IsArchived && p.Status == ProjectStatus.Active, cancellationToken);
 

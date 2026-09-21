@@ -22,7 +22,14 @@ public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand>
             throw new NotFoundException(nameof(Project), request.Id);
         }
 
-        await _unitOfWork.Projects.DeleteAsync(project, cancellationToken);
+        if (project.IsDeleted)
+        {
+            throw new DeletedException(nameof(Project), request.Id);
+        }
+
+        project.IsDeleted = true;
+        project.DeletedAt = DateTime.UtcNow;
+        await _unitOfWork.Projects.UpdateAsync(project, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }
