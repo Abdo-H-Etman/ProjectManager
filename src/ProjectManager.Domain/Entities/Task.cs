@@ -20,6 +20,8 @@ public class Task : BaseEntity
     public Guid? ParentTaskId { get; set; }
     public decimal? EstimatedHours { get; set; }
     public decimal? ActualHours { get; set; }
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
 
     public Project Project { get; set; } = null!;
     public Task? ParentTask { get; set; }

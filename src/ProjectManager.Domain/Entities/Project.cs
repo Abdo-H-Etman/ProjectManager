@@ -13,6 +13,8 @@ public class Project : BaseEntity
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public bool IsArchived { get; set; } = false;
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
 
     public ICollection<Task> Tasks { get; set; } = [];
 }
