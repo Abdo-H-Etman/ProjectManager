@@ -49,6 +49,7 @@ public class ExceptionHandlingMiddleware
         var statusCode = exception switch
         {
             ValidationException => HttpStatusCode.BadRequest,
+            DeletedException => HttpStatusCode.Gone,
             NotFoundException => HttpStatusCode.NotFound,
             KeyNotFoundException => HttpStatusCode.NotFound,
             UnauthorizedAccessException => HttpStatusCode.Unauthorized,
@@ -67,6 +68,16 @@ public class ExceptionHandlingMiddleware
                 status = (int)HttpStatusCode.BadRequest,
                 title = "Validation Failed",
                 errors = validationEx.Errors
+            };
+        }
+        else if (exception is DeletedException deletedEx)
+        {
+            _logger.LogWarning("Resource was deleted: {Message}", deletedEx.Message);
+            responseBody = new
+            {
+                status = (int)HttpStatusCode.Gone,
+                title = "Resource Deleted",
+                detail = deletedEx.Message
             };
         }
         else if (exception is NotFoundException notFoundEx)
