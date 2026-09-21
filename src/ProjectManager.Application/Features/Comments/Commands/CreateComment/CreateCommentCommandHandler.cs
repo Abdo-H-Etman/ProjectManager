@@ -22,10 +22,15 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentForTaskC
 
     public async Task<CommentDto> Handle(CreateCommentForTaskCommand request, CancellationToken cancellationToken)
     {
-        var taskExists = await _unitOfWork.Tasks.ExistsAsync(request.TaskId, cancellationToken);
-        if (!taskExists)
+        var task = await _unitOfWork.Tasks.GetByIdAsync(request.TaskId, cancellationToken);
+        if (task == null)
         {
             throw new NotFoundException(nameof(TaskEntity), request.TaskId);
+        }
+
+        if (task.IsDeleted)
+        {
+            throw new DeletedException(nameof(TaskEntity), request.TaskId);
         }
 
         var authorId = _currentUserService.UserId ?? Guid.NewGuid();
