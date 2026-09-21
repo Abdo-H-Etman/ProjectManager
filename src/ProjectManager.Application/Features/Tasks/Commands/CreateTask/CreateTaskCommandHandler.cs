@@ -1,5 +1,6 @@
 using Application.Common.Interfaces;
 using Application.Features.Tasks.DTOs;
+using AutoMapper;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptions;
@@ -13,21 +14,29 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, TaskD
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IMapper _mapper;
 
     public CreateTaskCommandHandler(
         IUnitOfWork unitOfWork,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
+        _mapper = mapper;
     }
 
     public async Task<TaskDto> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
     {
-        var projectExists = await _unitOfWork.Projects.ExistsAsync(request.ProjectId, cancellationToken);
-        if (!projectExists)
+        var project = await _unitOfWork.Projects.GetByIdAsync(request.ProjectId, cancellationToken);
+        if (project == null)
         {
             throw new NotFoundException(nameof(Project), request.ProjectId);
+        }
+
+        if (project.IsDeleted)
+        {
+            throw new DeletedException(nameof(Project), request.ProjectId);
         }
 
         var createdById = _currentUserService.UserId;
@@ -55,25 +64,6 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, TaskD
         await _unitOfWork.Tasks.AddAsync(task, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new TaskDto
-        {
-            Id = task.Id,
-            ProjectId = task.ProjectId,
-            Title = task.Title,
-            Description = task.Description,
-            Priority = task.Priority.ToString(),
-            Status = task.Status.ToString(),
-            DueDate = task.DueDate,
-            StartDate = task.StartDate,
-            CompletedAt = task.CompletedAt,
-            AssignedToId = task.AssignedToId,
-            AssignedAt = task.AssignedAt,
-            CreatedById = task.CreatedById,
-            ParentTaskId = task.ParentTaskId,
-            EstimatedHours = task.EstimatedHours,
-            ActualHours = task.ActualHours,
-            CreatedAt = task.CreatedAt,
-            UpdatedAt = task.UpdatedAt
-        };
+        return _mapper.Map<TaskDto>(task);
     }
 }

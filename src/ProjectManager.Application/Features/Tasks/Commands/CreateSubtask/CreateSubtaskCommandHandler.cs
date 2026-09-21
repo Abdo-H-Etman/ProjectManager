@@ -1,8 +1,10 @@
 using Application.Common.Interfaces;
 using Application.Features.Tasks.DTOs;
+using AutoMapper;
 using Domain.Exceptions;
 using MediatR;
 using TaskEntity = Domain.Entities.Task;
+using ProjectEntity = Domain.Entities.Project;
 using TaskPriority = Domain.Enums.TaskPriority;
 using TaskStatus = Domain.Enums.TaskStatus;
 
@@ -12,11 +14,13 @@ public class CreateSubtaskCommandHandler : IRequestHandler<CreateSubtaskCommand,
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IMapper _mapper;
 
-    public CreateSubtaskCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+    public CreateSubtaskCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
+        _mapper = mapper;
     }
 
     public async Task<TaskDto> Handle(CreateSubtaskCommand request, CancellationToken cancellationToken)
@@ -27,6 +31,21 @@ public class CreateSubtaskCommandHandler : IRequestHandler<CreateSubtaskCommand,
             throw new NotFoundException(nameof(TaskEntity), request.ParentTaskId);
         }
 
+        if (parentTask.IsDeleted)
+        {
+            throw new DeletedException(nameof(TaskEntity), request.ParentTaskId);
+        }
+
+        var project = await _unitOfWork.Projects.GetByIdAsync(parentTask.ProjectId, cancellationToken);
+        if (project == null)
+        {
+            throw new NotFoundException(nameof(ProjectEntity), parentTask.ProjectId);
+        }
+
+        if (project.IsDeleted)
+        {
+            throw new DeletedException(nameof(ProjectEntity), parentTask.ProjectId);
+        }
         var priority = Enum.TryParse<TaskPriority>(request.Priority, true, out var parsedPriority)
             ? parsedPriority
             : TaskPriority.Medium;
@@ -57,25 +76,6 @@ public class CreateSubtaskCommandHandler : IRequestHandler<CreateSubtaskCommand,
         await _unitOfWork.Tasks.AddAsync(subtask, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new TaskDto
-        {
-            Id = subtask.Id,
-            ProjectId = subtask.ProjectId,
-            Title = subtask.Title,
-            Description = subtask.Description,
-            Priority = subtask.Priority.ToString(),
-            Status = subtask.Status.ToString(),
-            DueDate = subtask.DueDate,
-            StartDate = subtask.StartDate,
-            CompletedAt = subtask.CompletedAt,
-            AssignedToId = subtask.AssignedToId,
-            AssignedAt = subtask.AssignedAt,
-            CreatedById = subtask.CreatedById,
-            ParentTaskId = subtask.ParentTaskId,
-            EstimatedHours = subtask.EstimatedHours,
-            ActualHours = subtask.ActualHours,
-            CreatedAt = subtask.CreatedAt,
-            UpdatedAt = subtask.UpdatedAt
-        };
+        return _mapper.Map<TaskDto>(subtask);
     }
 }

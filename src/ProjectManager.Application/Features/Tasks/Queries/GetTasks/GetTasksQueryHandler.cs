@@ -1,5 +1,6 @@
 using Application.Common.Interfaces;
 using Application.Features.Tasks.DTOs;
+using AutoMapper;
 using MediatR;
 
 namespace Application.Features.Tasks.Queries.GetTasks;
@@ -8,11 +9,13 @@ public class GetTasksQueryHandler : IRequestHandler<GetTasksQuery, IReadOnlyList
 {
     private readonly ITaskRepository _taskRepository;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IMapper _mapper;
 
-    public GetTasksQueryHandler(ITaskRepository taskRepository, ICurrentUserService currentUserService)
+    public GetTasksQueryHandler(ITaskRepository taskRepository, ICurrentUserService currentUserService, IMapper mapper)
     {
         _taskRepository = taskRepository;
         _currentUserService = currentUserService;
+        _mapper = mapper;
     }
 
     public async Task<IReadOnlyList<TaskDto>> Handle(GetTasksQuery request, CancellationToken cancellationToken)
@@ -30,25 +33,6 @@ public class GetTasksQueryHandler : IRequestHandler<GetTasksQuery, IReadOnlyList
             request.AssignedToId ?? _currentUserService.UserId,
             cancellationToken);
 
-        return tasks.Select(t => new TaskDto
-        {
-            Id = t.Id,
-            ProjectId = t.ProjectId,
-            Title = t.Title,
-            Description = t.Description,
-            Priority = t.Priority.ToString(),
-            Status = t.Status.ToString(),
-            DueDate = t.DueDate,
-            StartDate = t.StartDate,
-            CompletedAt = t.CompletedAt,
-            AssignedToId = t.AssignedToId,
-            AssignedAt = t.AssignedAt,
-            CreatedById = t.CreatedById,
-            ParentTaskId = t.ParentTaskId,
-            EstimatedHours = t.EstimatedHours,
-            ActualHours = t.ActualHours,
-            CreatedAt = t.CreatedAt,
-            UpdatedAt = t.UpdatedAt
-        }).ToList();
+        return _mapper.Map<IReadOnlyList<TaskDto>>(tasks);
     }
 }

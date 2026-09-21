@@ -1,4 +1,5 @@
 using System.Reflection;
+using AutoMapper;
 using Application.Common.Behaviors;
 using FluentValidation;
 using MediatR;
@@ -12,6 +13,7 @@ public static class DependencyInjection
     {
         var assembly = Assembly.GetExecutingAssembly();
 
+        services.AddAutoMapper(cfg => cfg.AddMaps(assembly));
         services.AddValidatorsFromAssembly(assembly);
 
         services.AddMediatR(cfg =>

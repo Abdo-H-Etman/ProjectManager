@@ -1,5 +1,6 @@
 using Application.Common.Interfaces;
 using Application.Features.Tasks.DTOs;
+using AutoMapper;
 using Domain.Exceptions;
 using MediatR;
 using TaskEntity = Domain.Entities.Task;
@@ -10,10 +11,12 @@ namespace Application.Features.Tasks.Commands.UpdateTask;
 public class UpdateTaskCommandHandler : IRequestHandler<UpdateTaskCommand, TaskDto>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public UpdateTaskCommandHandler(IUnitOfWork unitOfWork)
+    public UpdateTaskCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
     public async Task<TaskDto> Handle(UpdateTaskCommand request, CancellationToken cancellationToken)
@@ -55,25 +58,6 @@ public class UpdateTaskCommandHandler : IRequestHandler<UpdateTaskCommand, TaskD
         await _unitOfWork.Tasks.UpdateAsync(task, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new TaskDto
-        {
-            Id = task.Id,
-            ProjectId = task.ProjectId,
-            Title = task.Title,
-            Description = task.Description,
-            Priority = task.Priority.ToString(),
-            Status = task.Status.ToString(),
-            DueDate = task.DueDate,
-            StartDate = task.StartDate,
-            CompletedAt = task.CompletedAt,
-            AssignedToId = task.AssignedToId,
-            AssignedAt = task.AssignedAt,
-            CreatedById = task.CreatedById,
-            ParentTaskId = task.ParentTaskId,
-            EstimatedHours = task.EstimatedHours,
-            ActualHours = task.ActualHours,
-            CreatedAt = task.CreatedAt,
-            UpdatedAt = task.UpdatedAt
-        };
+        return _mapper.Map<TaskDto>(task);
     }
 }

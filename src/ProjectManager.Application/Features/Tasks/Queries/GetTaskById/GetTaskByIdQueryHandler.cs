@@ -1,6 +1,7 @@
 using Application.Common.Interfaces;
 using Application.Features.Comments.DTOs;
 using Application.Features.Tasks.DTOs;
+using AutoMapper;
 using Domain.Exceptions;
 using MediatR;
 using TaskEntity = Domain.Entities.Task;
@@ -10,10 +11,12 @@ namespace Application.Features.Tasks.Queries.GetTaskById;
 public class GetTaskByIdQueryHandler : IRequestHandler<GetTaskByIdQuery, TaskDetailDto>
 {
     private readonly ITaskRepository _taskRepository;
+    private readonly IMapper _mapper;
 
-    public GetTaskByIdQueryHandler(ITaskRepository taskRepository)
+    public GetTaskByIdQueryHandler(ITaskRepository taskRepository, IMapper mapper)
     {
         _taskRepository = taskRepository;
+        _mapper = mapper;
     }
 
     public async Task<TaskDetailDto> Handle(GetTaskByIdQuery request, CancellationToken cancellationToken)
@@ -24,40 +27,20 @@ public class GetTaskByIdQueryHandler : IRequestHandler<GetTaskByIdQuery, TaskDet
             throw new NotFoundException(nameof(Task), request.Id);
         }
 
-        return new TaskDetailDto
+        var taskDto = _mapper.Map<TaskDetailDto>(task);
+        taskDto.Comments = task.Comments?.Select(comment => new CommentDto
         {
-            Id = task.Id,
-            ProjectId = task.ProjectId,
-            Title = task.Title,
-            Description = task.Description,
-            Priority = task.Priority.ToString(),
-            Status = task.Status.ToString(),
-            DueDate = task.DueDate,
-            StartDate = task.StartDate,
-            CompletedAt = task.CompletedAt,
-            AssignedToId = task.AssignedToId,
-            AssignedAt = task.AssignedAt,
-            CreatedById = task.CreatedById,
-            ParentTaskId = task.ParentTaskId,
-            EstimatedHours = task.EstimatedHours,
-            ActualHours = task.ActualHours,
-            CreatedAt = task.CreatedAt,
-            UpdatedAt = task.UpdatedAt,
-            ProjectName = task.Project?.Name,
-            CommentCount = task.Comments?.Count ?? 0,
-            SubTaskCount = task.SubTasks?.Count ?? 0,
-            Comments = task.Comments?.Select(comment => new CommentDto
-            {
-                Id = comment.Id,
-                TaskId = comment.TaskId,
-                AuthorId = comment.AuthorId,
-                ParentCommentId = comment.ParentCommentId,
-                Content = comment.Content,
-                IsEdited = comment.IsEdited,
-                EditedAt = comment.EditedAt,
-                CreatedAt = comment.CreatedAt,
-                UpdatedAt = comment.UpdatedAt
-            }).ToList() ?? []
-        };
+            Id = comment.Id,
+            TaskId = comment.TaskId,
+            AuthorId = comment.AuthorId,
+            ParentCommentId = comment.ParentCommentId,
+            Content = comment.Content,
+            IsEdited = comment.IsEdited,
+            EditedAt = comment.EditedAt,
+            CreatedAt = comment.CreatedAt,
+            UpdatedAt = comment.UpdatedAt
+        }).ToList() ?? [];
+
+        return taskDto;
     }
 }

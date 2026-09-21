@@ -22,7 +22,14 @@ public class DeleteTaskCommandHandler : IRequestHandler<DeleteTaskCommand>
             throw new NotFoundException(nameof(Task), request.Id);
         }
 
-        await _unitOfWork.Tasks.DeleteAsync(task, cancellationToken);
+        if (task.IsDeleted)
+        {
+            throw new DeletedException(nameof(Task), request.Id);
+        }
+
+        task.IsDeleted = true;
+        task.DeletedAt = DateTime.UtcNow;
+        await _unitOfWork.Tasks.UpdateAsync(task, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }
