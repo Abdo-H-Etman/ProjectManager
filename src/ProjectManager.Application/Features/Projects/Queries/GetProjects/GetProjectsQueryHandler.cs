@@ -1,5 +1,6 @@
 using Application.Common.Interfaces;
 using Application.Features.Projects.DTOs;
+using AutoMapper;
 using MediatR;
 
 namespace Application.Features.Projects.Queries.GetProjects;
@@ -7,10 +8,12 @@ namespace Application.Features.Projects.Queries.GetProjects;
 public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, IReadOnlyList<ProjectDto>>
 {
     private readonly IProjectRepository _projectRepository;
+    private readonly IMapper _mapper;
 
-    public GetProjectsQueryHandler(IProjectRepository projectRepository)
+    public GetProjectsQueryHandler(IProjectRepository projectRepository, IMapper mapper)
     {
         _projectRepository = projectRepository;
+        _mapper = mapper;
     }
 
     public async Task<IReadOnlyList<ProjectDto>> Handle(GetProjectsQuery request, CancellationToken cancellationToken)
@@ -21,18 +24,6 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, IReadOn
                  (string.IsNullOrWhiteSpace(request.SearchTerm) || p.Name.Contains(request.SearchTerm) || (p.Description != null && p.Description.Contains(request.SearchTerm))),
             cancellationToken);
 
-        return projects.Select(p => new ProjectDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            Description = p.Description,
-            Status = p.Status.ToString(),
-            OwnerId = p.OwnerId,
-            StartDate = p.StartDate,
-            EndDate = p.EndDate,
-            IsArchived = p.IsArchived,
-            CreatedAt = p.CreatedAt,
-            UpdatedAt = p.UpdatedAt
-        }).ToList();
+        return _mapper.Map<IReadOnlyList<ProjectDto>>(projects);
     }
 }

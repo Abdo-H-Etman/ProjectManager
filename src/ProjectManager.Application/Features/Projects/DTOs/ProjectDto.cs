@@ -14,6 +14,8 @@ public class ProjectDto
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public bool IsArchived { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

@@ -1,5 +1,6 @@
 using Application.Common.Interfaces;
 using Application.Features.Projects.DTOs;
+using AutoMapper;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptions;
@@ -10,10 +11,12 @@ namespace Application.Features.Projects.Commands.UpdateProject;
 public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand, ProjectDto>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public UpdateProjectCommandHandler(IUnitOfWork unitOfWork)
+    public UpdateProjectCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
     public async Task<ProjectDto> Handle(UpdateProjectCommand request, CancellationToken cancellationToken)
@@ -36,18 +39,6 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         await _unitOfWork.Projects.UpdateAsync(project, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new ProjectDto
-        {
-            Id = project.Id,
-            Name = project.Name,
-            Description = project.Description,
-            Status = project.Status.ToString(),
-            OwnerId = project.OwnerId,
-            StartDate = project.StartDate,
-            EndDate = project.EndDate,
-            IsArchived = project.IsArchived,
-            CreatedAt = project.CreatedAt,
-            UpdatedAt = project.UpdatedAt
-        };
+        return _mapper.Map<ProjectDto>(project);
     }
 }
