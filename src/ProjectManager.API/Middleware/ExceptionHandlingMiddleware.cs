@@ -53,6 +53,7 @@ public class ExceptionHandlingMiddleware
             NotFoundException => HttpStatusCode.NotFound,
             KeyNotFoundException => HttpStatusCode.NotFound,
             UnauthorizedAccessException => HttpStatusCode.Unauthorized,
+            InvalidTaskStatusTransitionException => HttpStatusCode.BadRequest,
             _ => HttpStatusCode.InternalServerError
         };
 
@@ -98,6 +99,16 @@ public class ExceptionHandlingMiddleware
                 status = (int)HttpStatusCode.Unauthorized,
                 title = "Unauthorized",
                 detail = unauthorizedEx.Message
+            };
+        }
+        else if (exception is InvalidTaskStatusTransitionException invalidTransitionEx)
+        {
+            _logger.LogWarning("Invalid task status transition: {Message}", invalidTransitionEx.Message);
+            responseBody = new
+            {
+                status = (int)HttpStatusCode.BadRequest,
+                title = "Invalid Task Status Transition",
+                detail = invalidTransitionEx.Message
             };
         }
         else

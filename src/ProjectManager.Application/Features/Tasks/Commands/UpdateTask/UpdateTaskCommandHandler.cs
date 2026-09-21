@@ -1,9 +1,9 @@
 using Application.Common.Interfaces;
 using Application.Features.Tasks.DTOs;
 using AutoMapper;
+using Domain.Enums;
 using Domain.Exceptions;
 using MediatR;
-using TaskEntity = Domain.Entities.Task;
 using TaskStatus = Domain.Enums.TaskStatus;
 
 namespace Application.Features.Tasks.Commands.UpdateTask;
@@ -30,6 +30,11 @@ public class UpdateTaskCommandHandler : IRequestHandler<UpdateTaskCommand, TaskD
         task.Title = request.Title;
         task.Description = request.Description;
         task.Priority = request.Priority;
+
+        if (!task.Status.CanTransitionTo(request.Status))
+        {
+            throw new InvalidTaskStatusTransitionException(task.Status, request.Status);
+        }
 
         // If status changed to Completed and wasn't completed before, set CompletedAt
         if (request.Status == TaskStatus.Completed && task.Status != TaskStatus.Completed)
@@ -60,4 +65,5 @@ public class UpdateTaskCommandHandler : IRequestHandler<UpdateTaskCommand, TaskD
 
         return _mapper.Map<TaskDto>(task);
     }
+
 }

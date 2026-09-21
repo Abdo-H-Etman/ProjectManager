@@ -52,7 +52,7 @@ public class CreateSubtaskCommandHandler : IRequestHandler<CreateSubtaskCommand,
 
         var status = Enum.TryParse<TaskStatus>(request.Status, true, out var parsedStatus)
             ? parsedStatus
-            : TaskStatus.Pending;
+            : TaskStatus.Todo;
 
         var subtask = new TaskEntity
         {

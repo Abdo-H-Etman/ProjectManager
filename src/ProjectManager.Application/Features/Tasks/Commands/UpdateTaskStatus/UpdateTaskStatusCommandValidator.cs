@@ -13,6 +13,6 @@ public class UpdateTaskStatusCommandValidator : AbstractValidator<UpdateTaskStat
         RuleFor(v => v.Status)
             .NotEmpty().WithMessage("Status is required.")
             .Must(status => Enum.TryParse<TaskStatus>(status, true, out _))
-            .WithMessage("Status must be a valid task status (Pending, InProgress, Review, Blocked, Completed, Cancelled).");
+            .WithMessage("Status must be a valid task status (Todo, InProgress, Completed, Cancelled).");
     }
 }

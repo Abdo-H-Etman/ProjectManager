@@ -1,6 +1,7 @@
 using Application.Common.Interfaces;
 using Application.Features.Tasks.DTOs;
 using AutoMapper;
+using Domain.Enums;
 using Domain.Exceptions;
 using MediatR;
 using TaskEntity = Domain.Entities.Task;
@@ -29,6 +30,11 @@ public class UpdateTaskStatusCommandHandler : IRequestHandler<UpdateTaskStatusCo
 
         var newStatus = Enum.Parse<TaskStatus>(request.Status, true);
 
+        if (!task.Status.CanTransitionTo(newStatus))
+        {
+            throw new InvalidTaskStatusTransitionException(task.Status, newStatus);
+        }
+
         if (newStatus == TaskStatus.Completed && task.Status != TaskStatus.Completed)
         {
             task.CompletedAt = DateTime.UtcNow;
@@ -46,4 +52,5 @@ public class UpdateTaskStatusCommandHandler : IRequestHandler<UpdateTaskStatusCo
 
         return _mapper.Map<TaskDto>(task);
     }
+
 }
