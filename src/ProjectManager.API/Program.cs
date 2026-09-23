@@ -1,7 +1,10 @@
 using System.Text;
+using System.Security.Claims;
 using Application;
 using Application.Common.Interfaces;
 using Infrastructure;
+using Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -70,6 +73,30 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidAudience = jwtAudience,
         ClockSkew = TimeSpan.Zero
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var userIdValue = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var tokenStamp = context.Principal?.FindFirstValue("security_stamp");
+
+            if (!Guid.TryParse(userIdValue, out var userId) || string.IsNullOrWhiteSpace(tokenStamp))
+            {
+                context.Fail("The access token is missing required claims.");
+                return;
+            }
+
+            await using var scope = context.HttpContext.RequestServices.CreateAsyncScope();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var user = await userManager.FindByIdAsync(userId.ToString());
+            var currentStamp = user == null ? null : await userManager.GetSecurityStampAsync(user);
+
+            if (user == null || !user.IsActive || user.IsDeleted || currentStamp != tokenStamp)
+            {
+                context.Fail("The access token has been revoked.");
+            }
+        }
     };
 });
 
