@@ -34,14 +34,18 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, A
             throw new ValidationException(failures);
         }
 
-        var token = _jwtTokenGenerator.GenerateToken(userId, request.Email, fullName);
+        var securityStamp = await _identityService.GetSecurityStampAsync(userId, cancellationToken);
+        var token = _jwtTokenGenerator.GenerateToken(userId, request.Email, fullName, securityStamp: securityStamp);
+        var refreshToken = await _identityService.CreateRefreshTokenAsync(userId, cancellationToken);
 
         return new AuthResponseDto
         {
             Id = userId,
             Email = request.Email,
             FullName = fullName,
-            Token = token
+            Token = token,
+            RefreshToken = refreshToken,
+            AccessTokenExpiresAt = _jwtTokenGenerator.GetAccessTokenExpiration()
         };
     }
 }

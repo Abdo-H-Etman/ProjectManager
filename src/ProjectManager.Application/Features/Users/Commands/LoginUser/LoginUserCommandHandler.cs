@@ -29,14 +29,18 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, AuthRes
             throw new UnauthorizedAccessException("Invalid email or password.");
         }
 
-        var token = _jwtTokenGenerator.GenerateToken(userId, email, fullName, roles);
+        var securityStamp = await _identityService.GetSecurityStampAsync(userId, cancellationToken);
+        var token = _jwtTokenGenerator.GenerateToken(userId, email, fullName, roles, securityStamp);
+        var refreshToken = await _identityService.CreateRefreshTokenAsync(userId, cancellationToken);
 
         return new AuthResponseDto
         {
             Id = userId,
             Email = email,
             FullName = fullName,
-            Token = token
+            Token = token,
+            RefreshToken = refreshToken,
+            AccessTokenExpiresAt = _jwtTokenGenerator.GetAccessTokenExpiration()
         };
     }
 }
