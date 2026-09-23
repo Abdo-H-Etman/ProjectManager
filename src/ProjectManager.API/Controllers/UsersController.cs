@@ -1,6 +1,8 @@
 using Application.Features.Users.Commands.ChangePassword;
 using Application.Features.Users.Commands.LoginUser;
+using Application.Features.Users.Commands.Logout;
 using Application.Features.Users.Commands.RegisterUser;
+using Application.Features.Users.Commands.RefreshToken;
 using Application.Features.Users.Commands.UpdateProfile;
 using Application.Features.Users.DTOs;
 using Application.Features.Users.Queries.GetCurrentUser;
@@ -40,6 +42,26 @@ public class UsersController : ApiControllerBase
     {
         var result = await Mediator.Send(command);
         return Ok(result);
+    }
+
+    /// <summary>Exchanges a valid refresh token for a new access token and refresh token.</summary>
+    [HttpPost("refresh")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<AuthResponseDto>> Refresh([FromBody] RefreshTokenCommand command)
+    {
+        return Ok(await Mediator.Send(command));
+    }
+
+    /// <summary>Invalidates a refresh token and ends the refresh session.</summary>
+    [HttpPost("logout")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Logout()
+    {
+        await Mediator.Send(new LogoutCommand());
+        return NoContent();
     }
 
     /// <summary>Gets the currently authenticated user's profile.</summary>
