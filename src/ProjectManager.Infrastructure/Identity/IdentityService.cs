@@ -1,5 +1,9 @@
 using Application.Common.Interfaces;
 using Application.Features.Users.DTOs;
+using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure.Identity;
@@ -7,10 +11,12 @@ namespace Infrastructure.Identity;
 public class IdentityService : IIdentityService
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly AppDbContext _dbContext;
 
-    public IdentityService(UserManager<ApplicationUser> userManager)
+    public IdentityService(UserManager<ApplicationUser> userManager, AppDbContext dbContext)
     {
         _userManager = userManager;
+        _dbContext = dbContext;
     }
 
     public async Task<(bool Success, Guid UserId, string FullName, string[] Errors)> CreateUserAsync(
@@ -71,6 +77,78 @@ public class IdentityService : IIdentityService
 
         return (true, user.Id, user.Email!, user.GetFullName(), roles, Array.Empty<string>());
     }
+
+    public async Task<string> CreateRefreshTokenAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString())
+            ?? throw new InvalidOperationException("User not found.");
+        return await CreateRefreshTokenAsync(user, cancellationToken);
+    }
+
+    public async Task<(bool Success, Guid UserId, string Email, string FullName, IEnumerable<string> Roles, string RefreshToken, string[] Errors)> RefreshSessionAsync(
+        string refreshToken,
+        CancellationToken cancellationToken = default)
+    {
+        var storedToken = await _dbContext.RefreshTokens
+            .Include(token => token.User)
+            .SingleOrDefaultAsync(token => token.TokenHash == HashToken(refreshToken), cancellationToken);
+
+        if (storedToken == null || storedToken.RevokedAt.HasValue || storedToken.ExpiresAt <= DateTime.UtcNow ||
+            !storedToken.User.IsActive || storedToken.User.IsDeleted)
+        {
+            return (false, Guid.Empty, string.Empty, string.Empty, Enumerable.Empty<string>(), string.Empty, ["Invalid or expired refresh token."]);
+        }
+
+        storedToken.RevokedAt = DateTime.UtcNow;
+        var roles = await _userManager.GetRolesAsync(storedToken.User);
+        var newRefreshToken = await CreateRefreshTokenAsync(storedToken.User, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return (true, storedToken.User.Id, storedToken.User.Email!, storedToken.User.GetFullName(), roles, newRefreshToken, Array.Empty<string>());
+    }
+
+    public async Task LogoutAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user != null)
+        {
+            var refreshTokens = await _dbContext.RefreshTokens
+                .Where(token => token.UserId == user.Id && !token.RevokedAt.HasValue)
+                .ToListAsync(cancellationToken);
+
+            foreach (var token in refreshTokens)
+            {
+                token.RevokedAt = DateTime.UtcNow;
+            }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            await _userManager.UpdateSecurityStampAsync(user);
+        }
+    }
+
+    public async Task<string?> GetSecurityStampAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        return user == null ? null : await _userManager.GetSecurityStampAsync(user);
+    }
+
+    private async Task<string> CreateRefreshTokenAsync(ApplicationUser user, CancellationToken cancellationToken)
+    {
+        var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        _dbContext.RefreshTokens.Add(new RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            TokenHash = HashToken(rawToken),
+            ExpiresAt = DateTime.UtcNow.AddDays(30)
+        });
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return rawToken;
+    }
+
+    private static string HashToken(string token) =>
+        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
 
     public async Task<UserDto?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {

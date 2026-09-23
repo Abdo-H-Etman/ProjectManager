@@ -16,7 +16,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         _configuration = configuration;
     }
 
-    public string GenerateToken(Guid userId, string email, string fullName, IEnumerable<string>? roles = null)
+    public string GenerateToken(Guid userId, string email, string fullName, IEnumerable<string>? roles = null, string? securityStamp = null)
     {
         var secretKey = _configuration["Jwt:Key"] ?? "Sprint4SuperSecretKeyForCleanArchitectureJwtAuth12345!";
         var issuer = _configuration["Jwt:Issuer"] ?? "ProjectManager.API";
@@ -42,6 +42,11 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             }
         }
 
+        if (!string.IsNullOrWhiteSpace(securityStamp))
+        {
+            claims.Add(new Claim("security_stamp", securityStamp));
+        }
+
         var token = new JwtSecurityToken(
             issuer: issuer,
             audience: audience,
@@ -50,5 +55,11 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public DateTime GetAccessTokenExpiration()
+    {
+        var expiresInMinutes = double.TryParse(_configuration["Jwt:ExpiresInMinutes"], out var minutes) ? minutes : 120;
+        return DateTime.UtcNow.AddMinutes(expiresInMinutes);
     }
 }

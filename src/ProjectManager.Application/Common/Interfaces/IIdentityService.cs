@@ -16,6 +16,15 @@ public interface IIdentityService
         string password,
         CancellationToken cancellationToken = default);
 
+    Task<string> CreateRefreshTokenAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    Task<(bool Success, Guid UserId, string Email, string FullName, IEnumerable<string> Roles, string RefreshToken, string[] Errors)> RefreshSessionAsync(
+        string refreshToken,
+        CancellationToken cancellationToken = default);
+
+    Task LogoutAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<string?> GetSecurityStampAsync(Guid userId, CancellationToken cancellationToken = default);
+
     Task<UserDto?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<UserDto>> GetUsersAsync(string? searchTerm = null, CancellationToken cancellationToken = default);
