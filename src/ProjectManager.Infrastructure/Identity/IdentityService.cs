@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
+using Application.Common.Authorization;
 
 namespace Infrastructure.Identity;
 
@@ -48,6 +49,13 @@ public class IdentityService : IIdentityService
         if (!result.Succeeded)
         {
             return (false, Guid.Empty, string.Empty, result.Errors.Select(e => e.Description).ToArray());
+        }
+
+        var roleResult = await _userManager.AddToRoleAsync(user, AuthorizationRoles.User);
+        if (!roleResult.Succeeded)
+        {
+            await _userManager.DeleteAsync(user);
+            return (false, Guid.Empty, string.Empty, roleResult.Errors.Select(e => e.Description).ToArray());
         }
 
         return (true, user.Id, user.GetFullName(), Array.Empty<string>());

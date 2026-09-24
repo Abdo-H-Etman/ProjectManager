@@ -43,4 +43,8 @@ public class CurrentUserService : ICurrentUserService
     /// </summary>
     public bool IsAuthenticated =>
         _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
+
+    /// <summary>Gets whether the current user has the specified role.</summary>
+    public bool IsInRole(string role) =>
+        _httpContextAccessor.HttpContext?.User?.IsInRole(role) ?? false;
 }
