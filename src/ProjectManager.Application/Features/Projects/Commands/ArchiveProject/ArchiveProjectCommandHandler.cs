@@ -38,7 +38,7 @@ public class ArchiveProjectCommandHandler : IRequestHandler<ArchiveProjectComman
         }
         project.UpdatedAt = DateTime.UtcNow;
 
-        await _unitOfWork.Projects.UpdateAsync(project, cancellationToken);
+        _unitOfWork.Projects.Update(project);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<ProjectDto>(project);

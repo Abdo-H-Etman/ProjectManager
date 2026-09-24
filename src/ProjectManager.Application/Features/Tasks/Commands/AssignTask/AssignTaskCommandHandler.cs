@@ -30,7 +30,7 @@ public class AssignTaskCommandHandler : IRequestHandler<AssignTaskCommand, TaskD
         task.AssignedAt = request.AssignedToId.HasValue ? DateTime.UtcNow : null;
         task.UpdatedAt = DateTime.UtcNow;
 
-        await _unitOfWork.Tasks.UpdateAsync(task, cancellationToken);
+        _unitOfWork.Tasks.Update(task);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<TaskDto>(task);

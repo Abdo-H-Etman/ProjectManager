@@ -36,7 +36,7 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         project.IsArchived = request.IsArchived;
         project.UpdatedAt = DateTime.UtcNow;
 
-        await _unitOfWork.Projects.UpdateAsync(project, cancellationToken);
+        _unitOfWork.Projects.Update(project);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<ProjectDto>(project);

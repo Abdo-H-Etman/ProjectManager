@@ -60,7 +60,7 @@ public class UpdateTaskCommandHandler : IRequestHandler<UpdateTaskCommand, TaskD
         task.ActualHours = request.ActualHours;
         task.UpdatedAt = DateTime.UtcNow;
 
-        await _unitOfWork.Tasks.UpdateAsync(task, cancellationToken);
+        _unitOfWork.Tasks.Update(task);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<TaskDto>(task);

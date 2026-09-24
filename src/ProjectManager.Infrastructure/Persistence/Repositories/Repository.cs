@@ -38,16 +38,14 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         return entity;
     }
 
-    public virtual Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
+    public virtual void Update(T entity)
     {
         _context.Entry(entity).State = EntityState.Modified;
-        return Task.CompletedTask;
     }
 
-    public virtual Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
+    public virtual void Delete(T entity)
     {
         _dbSet.Remove(entity);
-        return Task.CompletedTask;
     }
 
     public virtual async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)

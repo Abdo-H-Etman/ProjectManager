@@ -29,7 +29,7 @@ public class DeleteTaskCommandHandler : IRequestHandler<DeleteTaskCommand>
 
         task.IsDeleted = true;
         task.DeletedAt = DateTime.UtcNow;
-        await _unitOfWork.Tasks.UpdateAsync(task, cancellationToken);
+        _unitOfWork.Tasks.Update(task);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

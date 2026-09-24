@@ -22,7 +22,7 @@ public class DeleteCommentCommandHandler : IRequestHandler<DeleteCommentCommand>
             throw new NotFoundException(nameof(Comment), request.Id);
         }
 
-        await _unitOfWork.Comments.DeleteAsync(comment, cancellationToken);
+        _unitOfWork.Comments.Delete(comment);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

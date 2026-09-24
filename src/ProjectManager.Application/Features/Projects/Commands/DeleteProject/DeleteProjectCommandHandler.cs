@@ -29,7 +29,7 @@ public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand>
 
         project.IsDeleted = true;
         project.DeletedAt = DateTime.UtcNow;
-        await _unitOfWork.Projects.UpdateAsync(project, cancellationToken);
+        _unitOfWork.Projects.Update(project);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

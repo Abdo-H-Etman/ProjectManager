@@ -47,7 +47,7 @@ public class UpdateTaskStatusCommandHandler : IRequestHandler<UpdateTaskStatusCo
         task.Status = newStatus;
         task.UpdatedAt = DateTime.UtcNow;
 
-        await _unitOfWork.Tasks.UpdateAsync(task, cancellationToken);
+        _unitOfWork.Tasks.Update(task);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<TaskDto>(task);

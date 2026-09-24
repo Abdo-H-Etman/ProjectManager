@@ -35,7 +35,7 @@ public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand,
         comment.EditedAt = DateTime.UtcNow;
         comment.UpdatedAt = DateTime.UtcNow;
 
-        await _unitOfWork.Comments.UpdateAsync(comment, cancellationToken);
+        _unitOfWork.Comments.Update(comment);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new CommentDto
