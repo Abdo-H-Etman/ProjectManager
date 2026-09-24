@@ -4,6 +4,7 @@ using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using DomainTask = Domain.Entities.Task;
+using Application.Common.Authorization;
 
 namespace Infrastructure.Persistence;
 
@@ -24,6 +25,14 @@ public class DatabaseSeeder
     public async System.Threading.Tasks.Task SeedAsync(CancellationToken cancellationToken = default)
     {
         await _dbContext.Database.MigrateAsync(cancellationToken);
+
+        foreach (var roleName in new[] { AuthorizationRoles.Admin, AuthorizationRoles.User })
+        {
+            if (!await _dbContext.Roles.AnyAsync(role => role.Name == roleName, cancellationToken))
+            {
+                _dbContext.Roles.Add(new IdentityRole<Guid>(roleName));
+            }
+        }
 
         var user = await _userManager.FindByEmailAsync(SeedEmail);
         if (user is null)
@@ -46,6 +55,15 @@ public class DatabaseSeeder
             {
                 var errors = string.Join(", ", result.Errors.Select(error => error.Description));
                 throw new InvalidOperationException($"Could not create the seed user: {errors}");
+            }
+        }
+
+        if (!await _userManager.IsInRoleAsync(user, AuthorizationRoles.User))
+        {
+            var roleResult = await _userManager.AddToRoleAsync(user, AuthorizationRoles.User);
+            if (!roleResult.Succeeded)
+            {
+                throw new InvalidOperationException("Could not assign the seed user role.");
             }
         }
 

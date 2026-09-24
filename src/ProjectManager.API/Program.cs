@@ -2,6 +2,7 @@ using System.Text;
 using System.Security.Claims;
 using Application;
 using Application.Common.Interfaces;
+using Application.Common.Authorization;
 using Infrastructure;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -103,6 +104,23 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+await using (var roleScope = app.Services.CreateAsyncScope())
+{
+    var roleManager = roleScope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+    foreach (var roleName in new[] { AuthorizationRoles.Admin, AuthorizationRoles.User })
+    {
+        if (!await roleManager.RoleExistsAsync(roleName))
+        {
+            var result = await roleManager.CreateAsync(new IdentityRole<Guid>(roleName));
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(error => error.Description));
+                throw new InvalidOperationException($"Could not create the {roleName} role: {errors}");
+            }
+        }
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
