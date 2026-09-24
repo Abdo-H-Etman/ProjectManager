@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Application.Common.Authorization;
 using Application.Features.Comments.DTOs;
 using Domain.Entities;
 using Domain.Exceptions;
@@ -25,10 +26,7 @@ public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand,
             throw new NotFoundException(nameof(Comment), request.Id);
         }
 
-        if (_currentUserService.UserId.HasValue && comment.AuthorId != _currentUserService.UserId.Value)
-        {
-            throw new UnauthorizedAccessException("You can only edit your own comments.");
-        }
+        AuthorizationRules.RequireOwner(_currentUserService, comment.AuthorId, "You can only update your own comments.");
 
         comment.Content = request.Content;
         comment.IsEdited = true;

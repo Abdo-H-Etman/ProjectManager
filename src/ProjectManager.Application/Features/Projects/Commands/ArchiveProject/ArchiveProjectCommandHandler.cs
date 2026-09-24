@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Application.Common.Authorization;
 using Application.Features.Projects.DTOs;
 using AutoMapper;
 using Domain.Entities;
@@ -12,11 +13,13 @@ public class ArchiveProjectCommandHandler : IRequestHandler<ArchiveProjectComman
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
-    public ArchiveProjectCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+    public ArchiveProjectCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _currentUserService = currentUserService;
     }
 
     public async Task<ProjectDto> Handle(ArchiveProjectCommand request, CancellationToken cancellationToken)
@@ -26,6 +29,8 @@ public class ArchiveProjectCommandHandler : IRequestHandler<ArchiveProjectComman
         {
             throw new NotFoundException(nameof(Project), request.Id);
         }
+
+        AuthorizationRules.RequireOwnerOrAdmin(_currentUserService, project.OwnerId);
 
         project.IsArchived = request.IsArchived;
         if (request.IsArchived)

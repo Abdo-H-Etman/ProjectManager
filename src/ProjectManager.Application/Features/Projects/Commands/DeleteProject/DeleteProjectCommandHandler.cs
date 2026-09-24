@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Application.Common.Authorization;
 using Domain.Entities;
 using Domain.Exceptions;
 using MediatR;
@@ -8,10 +9,12 @@ namespace Application.Features.Projects.Commands.DeleteProject;
 public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICurrentUserService _currentUserService;
 
-    public DeleteProjectCommandHandler(IUnitOfWork unitOfWork)
+    public DeleteProjectCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
     {
         _unitOfWork = unitOfWork;
+        _currentUserService = currentUserService;
     }
 
     public async System.Threading.Tasks.Task Handle(DeleteProjectCommand request, CancellationToken cancellationToken)
@@ -21,6 +24,8 @@ public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand>
         {
             throw new NotFoundException(nameof(Project), request.Id);
         }
+
+        AuthorizationRules.RequireOwnerOrAdmin(_currentUserService, project.OwnerId);
 
         if (project.IsDeleted)
         {

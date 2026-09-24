@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Application.Common.Authorization;
 using Application.Features.Projects.DTOs;
 using AutoMapper;
 using Domain.Entities;
@@ -26,14 +27,14 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
     public async Task<ProjectDto> Handle(CreateProjectCommand request, CancellationToken cancellationToken)
     {
         Enum.TryParse(request.Status, true, out ProjectStatus status);
-        var ownerId = _currentUserService.UserId;
+        var ownerId = AuthorizationRules.RequireAuthenticatedUser(_currentUserService);
 
         var project = new Project
         {
             Name = request.Name,
             Description = request.Description,
             Status = status,
-            OwnerId = (Guid)ownerId!,
+            OwnerId = ownerId,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
             IsArchived = false,

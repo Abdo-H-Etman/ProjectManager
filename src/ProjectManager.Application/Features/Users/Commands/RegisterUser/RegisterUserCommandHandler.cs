@@ -1,4 +1,5 @@
 using Application.Common.Exceptions;
+using Application.Common.Authorization;
 using Application.Common.Interfaces;
 using Application.Features.Users.DTOs;
 using FluentValidation.Results;
@@ -35,7 +36,12 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, A
         }
 
         var securityStamp = await _identityService.GetSecurityStampAsync(userId, cancellationToken);
-        var token = _jwtTokenGenerator.GenerateToken(userId, request.Email, fullName, securityStamp: securityStamp);
+        var token = _jwtTokenGenerator.GenerateToken(
+            userId,
+            request.Email,
+            fullName,
+            new[] { AuthorizationRoles.User },
+            securityStamp);
         var refreshToken = await _identityService.CreateRefreshTokenAsync(userId, cancellationToken);
 
         return new AuthResponseDto

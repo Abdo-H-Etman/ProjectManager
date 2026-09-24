@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Application.Common.Authorization;
 using Application.Features.Tasks.DTOs;
 using AutoMapper;
 using Domain.Exceptions;
@@ -46,6 +47,9 @@ public class CreateSubtaskCommandHandler : IRequestHandler<CreateSubtaskCommand,
         {
             throw new DeletedException(nameof(ProjectEntity), parentTask.ProjectId);
         }
+
+        AuthorizationRules.RequireOwnerOrAdmin(_currentUserService, project.OwnerId,
+            "You can only create tasks in projects you own or administer.");
         var priority = Enum.TryParse<TaskPriority>(request.Priority, true, out var parsedPriority)
             ? parsedPriority
             : TaskPriority.Medium;
@@ -67,7 +71,7 @@ public class CreateSubtaskCommandHandler : IRequestHandler<CreateSubtaskCommand,
             CompletedAt = status == TaskStatus.Completed ? DateTime.UtcNow : null,
             AssignedToId = request.AssignedToId,
             AssignedAt = request.AssignedToId.HasValue ? DateTime.UtcNow : null,
-            CreatedById = _currentUserService.UserId,
+            CreatedById = AuthorizationRules.RequireAuthenticatedUser(_currentUserService),
             EstimatedHours = request.EstimatedHours,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

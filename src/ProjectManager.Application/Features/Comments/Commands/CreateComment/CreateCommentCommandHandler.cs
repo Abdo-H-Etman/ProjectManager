@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Application.Common.Authorization;
 using Application.Features.Comments.DTOs;
 using Domain.Entities;
 using Domain.Exceptions;
@@ -22,7 +23,7 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentForTaskC
 
     public async Task<CommentDto> Handle(CreateCommentForTaskCommand request, CancellationToken cancellationToken)
     {
-        var task = await _unitOfWork.Tasks.GetByIdAsync(request.TaskId, cancellationToken);
+        var task = await _unitOfWork.Tasks.GetByIdWithDetailsAsync(request.TaskId, cancellationToken);
         if (task == null)
         {
             throw new NotFoundException(nameof(TaskEntity), request.TaskId);
@@ -33,7 +34,7 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentForTaskC
             throw new DeletedException(nameof(TaskEntity), request.TaskId);
         }
 
-        var authorId = _currentUserService.UserId ?? Guid.NewGuid();
+        var authorId = AuthorizationRules.RequireAuthenticatedUser(_currentUserService);
 
         var comment = new Comment
         {

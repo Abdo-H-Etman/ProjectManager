@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Application.Common.Authorization;
 using Application.Features.Projects.DTOs;
 using AutoMapper;
 using Domain.Entities;
@@ -12,11 +13,13 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
-    public UpdateProjectCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+    public UpdateProjectCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _currentUserService = currentUserService;
     }
 
     public async Task<ProjectDto> Handle(UpdateProjectCommand request, CancellationToken cancellationToken)
@@ -26,6 +29,8 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         {
             throw new NotFoundException(nameof(Project), request.Id);
         }
+
+        AuthorizationRules.RequireOwnerOrAdmin(_currentUserService, project.OwnerId);
 
         Enum.TryParse(request.Status, true, out ProjectStatus status);
         project.Name = request.Name;

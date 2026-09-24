@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Application.Common.Authorization;
 using Application.Features.Tasks.DTOs;
 using AutoMapper;
 using Domain.Entities;
@@ -39,7 +40,10 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, TaskD
             throw new DeletedException(nameof(Project), request.ProjectId);
         }
 
-        var createdById = _currentUserService.UserId;
+        AuthorizationRules.RequireOwnerOrAdmin(_currentUserService, project.OwnerId,
+            "You can only create tasks in projects you own or administer.");
+
+        var createdById = AuthorizationRules.RequireAuthenticatedUser(_currentUserService);
 
         Enum.TryParse(request.Priority, true, out TaskPriority priority);
         Enum.TryParse(request.Status, true, out TaskStatus status);

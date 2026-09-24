@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Application.Common.Authorization;
 using Application.Features.Tasks.DTOs;
 using AutoMapper;
 using Domain.Enums;
@@ -13,20 +14,24 @@ public class UpdateTaskStatusCommandHandler : IRequestHandler<UpdateTaskStatusCo
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
-    public UpdateTaskStatusCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+    public UpdateTaskStatusCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _currentUserService = currentUserService;
     }
 
     public async Task<TaskDto> Handle(UpdateTaskStatusCommand request, CancellationToken cancellationToken)
     {
-        var task = await _unitOfWork.Tasks.GetByIdAsync(request.Id, cancellationToken);
+        var task = await _unitOfWork.Tasks.GetByIdWithDetailsAsync(request.Id, cancellationToken);
         if (task == null)
         {
             throw new NotFoundException(nameof(TaskEntity), request.Id);
         }
+
+        AuthorizationRules.RequireOwnerOrAdmin(_currentUserService, task.Project.OwnerId);
 
         var newStatus = Enum.Parse<TaskStatus>(request.Status, true);
 

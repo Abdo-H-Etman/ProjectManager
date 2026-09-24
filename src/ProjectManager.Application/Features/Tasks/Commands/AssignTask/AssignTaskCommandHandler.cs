@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Application.Common.Authorization;
 using Application.Features.Tasks.DTOs;
 using AutoMapper;
 using Domain.Exceptions;
@@ -11,20 +12,24 @@ public class AssignTaskCommandHandler : IRequestHandler<AssignTaskCommand, TaskD
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUserService;
 
-    public AssignTaskCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+    public AssignTaskCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _currentUserService = currentUserService;
     }
 
     public async Task<TaskDto> Handle(AssignTaskCommand request, CancellationToken cancellationToken)
     {
-        var task = await _unitOfWork.Tasks.GetByIdAsync(request.Id, cancellationToken);
+        var task = await _unitOfWork.Tasks.GetByIdWithDetailsAsync(request.Id, cancellationToken);
         if (task == null)
         {
             throw new NotFoundException(nameof(TaskEntity), request.Id);
         }
+
+        AuthorizationRules.RequireOwnerOrAdmin(_currentUserService, task.Project.OwnerId);
 
         task.AssignedToId = request.AssignedToId;
         task.AssignedAt = request.AssignedToId.HasValue ? DateTime.UtcNow : null;
