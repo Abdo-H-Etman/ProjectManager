@@ -53,6 +53,7 @@ public class ExceptionHandlingMiddleware
             NotFoundException => HttpStatusCode.NotFound,
             KeyNotFoundException => HttpStatusCode.NotFound,
             UnauthorizedAccessException => HttpStatusCode.Unauthorized,
+            ForbiddenAccessException => HttpStatusCode.Forbidden,
             InvalidTaskStatusTransitionException => HttpStatusCode.BadRequest,
             _ => HttpStatusCode.InternalServerError
         };
@@ -99,6 +100,16 @@ public class ExceptionHandlingMiddleware
                 status = (int)HttpStatusCode.Unauthorized,
                 title = "Unauthorized",
                 detail = unauthorizedEx.Message
+            };
+        }
+        else if (exception is ForbiddenAccessException forbiddenEx)
+        {
+            _logger.LogWarning("Forbidden request: {Message}", forbiddenEx.Message);
+            responseBody = new
+            {
+                status = (int)HttpStatusCode.Forbidden,
+                title = "Forbidden",
+                detail = forbiddenEx.Message
             };
         }
         else if (exception is InvalidTaskStatusTransitionException invalidTransitionEx)
